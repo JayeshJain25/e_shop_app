@@ -5,7 +5,6 @@ import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/loading_widget.dart';
 import 'package:e_shop_app/widgets/order_card_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserOrdersHistory extends StatefulWidget {
@@ -36,7 +35,7 @@ class _UserOrdersHistoryState extends State<UserOrdersHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -67,25 +66,17 @@ class _UserOrdersHistoryState extends State<UserOrdersHistory> {
                     UserOrdersModel orders = UserOrdersModel.fromJson(
                         snapshot.data!.docs[index].data()!
                             as Map<String, dynamic>);
-                    return FutureBuilder<QuerySnapshot>(
-                      future:
-                          FirebaseFirestore.instance.collection("items").get(),
-                      builder: (c, snap) {
-                        return snap.hasData
-                            ? OrderCardWidget(
-                                itemCount: snap.data!.docs.length,
-                                data: snap.data!.docs,
-                                orderID: snapshot.data!.docs[index].id,
-                                orderLength: orders.productIDs.length,
-                                productIds:
-                                    List<String>.from(orders.productIDs),
-                                type: "userOrderHistory",
-                              )
-                            : Center(
-                                child: circularProgress(),
-                              );
-                      },
-                    );
+
+                    return snapshot.hasData
+                        ? OrderCardWidget(
+                            orderID: snapshot.data!.docs[index].id,
+                            orderLength: orders.productIDs.length,
+                            productIds: orders.productIDs,
+                            type: "userOrderHistory",
+                          )
+                        : Center(
+                            child: circularProgress(),
+                          );
                   },
                 )
               : Center(

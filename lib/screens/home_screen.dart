@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -118,47 +119,44 @@ class HomeMainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return CustomScrollView(
-      slivers: [
-        SliverPersistentHeader(delegate: SearchBoxDelegate()),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection("items")
-              .orderBy("publishedDate", descending: true)
-              .snapshots(),
-          builder: (context, dataSnapshot) {
-            return !dataSnapshot.hasData
-                ? SliverToBoxAdapter(
-                    child: Center(
-                      child: circularProgress(),
-                    ),
-                  )
-                : SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 1,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, index) {
-                        ItemModel model = ItemModel.fromJson(
-                            dataSnapshot.data!.docs[index].data()!
-                                as Map<String, dynamic>);
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: UserHomeProductCardWidget(
-                              itemModel: model,
-                              context: context,
-                              productId: dataSnapshot.data!.docs[index].id),
-                        );
-                      },
-                      childCount: dataSnapshot.data!.docs.length,
-                    ),
-                  );
-          },
-        ),
-      ],
-    );
+    return StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("items")
+            .orderBy("publishedDate", descending: true)
+            .snapshots(),
+        builder: (context, dataSnapshot) {
+          return !dataSnapshot.hasData
+              ? Center(
+                  child: circularProgress(),
+                )
+              : CustomScrollView(
+                  slivers: [
+                    SliverPersistentHeader(delegate: SearchBoxDelegate()),
+                    SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 1,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (ctx, index) {
+                          ItemModel model = ItemModel.fromJson(
+                              dataSnapshot.data!.docs[index].data()!
+                                  as Map<String, dynamic>);
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: UserHomeProductCardWidget(
+                                itemModel: model,
+                                context: context,
+                                productId: dataSnapshot.data!.docs[index].id),
+                          );
+                        },
+                        childCount: dataSnapshot.data!.docs.length,
+                      ),
+                    )
+                  ],
+                );
+        });
   }
 }

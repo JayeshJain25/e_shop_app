@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/model/address.dart';
+import 'package:e_shop_app/model/cart_model.dart';
 import 'package:e_shop_app/providers/change_address.dart';
 import 'package:e_shop_app/screens/add_address_screen.dart';
 import 'package:e_shop_app/screens/order_payment_screen.dart';
@@ -13,7 +14,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AddressScreen extends StatefulWidget {
   final double totalAmount;
-  const AddressScreen({Key? key, required this.totalAmount}) : super(key: key);
+  final List<CartModel> productCount;
+  final String buyType;
+
+  const AddressScreen(
+      {Key? key,
+      required this.totalAmount,
+      required this.productCount,
+      required this.buyType})
+      : super(key: key);
 
   @override
   State<AddressScreen> createState() => _AddressScreenState();
@@ -41,7 +50,7 @@ class _AddressScreenState extends State<AddressScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: true,
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -104,6 +113,8 @@ class _AddressScreenState extends State<AddressScreen> {
                                     value: index,
                                     addressId: snapshot.data!.docs[index].id,
                                     totalAmount: widget.totalAmount,
+                                    productCount: widget.productCount,
+                                    buyType: widget.buyType,
                                     model: AddressModel.fromJson(
                                         snapshot.data!.docs[index].data()!
                                             as Map<String, dynamic>),
@@ -125,6 +136,9 @@ class _AddressScreenState extends State<AddressScreen> {
                 builder: (c) => AddAddress(
                       userId: userId!,
                       totalAmount: widget.totalAmount,
+                      productCount: widget.productCount,
+                      type: "yes",
+                      buyType: widget.buyType,
                     ));
             Navigator.pushReplacement(context, route);
           },
@@ -165,6 +179,8 @@ class AddressCard extends StatefulWidget {
   final double totalAmount;
   final int currentIndex;
   final int value;
+  final List<CartModel> productCount;
+  final String buyType;
 
   const AddressCard(
       {Key? key,
@@ -172,7 +188,9 @@ class AddressCard extends StatefulWidget {
       required this.currentIndex,
       required this.addressId,
       required this.totalAmount,
-      required this.value})
+      required this.value,
+      required this.productCount,
+      required this.buyType})
       : super(key: key);
 
   @override
@@ -262,6 +280,8 @@ class _AddressCardState extends State<AddressCard> {
                           builder: (c) => OrderPaymentScreen(
                                 addressId: widget.addressId,
                                 totalAmount: widget.totalAmount,
+                                productCount: widget.productCount,
+                                buyType: widget.buyType,
                               ));
                       Navigator.push(context, route);
                     },

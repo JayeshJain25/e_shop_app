@@ -1,5 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/model/item.dart';
 import 'package:e_shop_app/providers/product_provider.dart';
@@ -63,8 +63,10 @@ class _UserHomeProductCardWidgetState extends State<UserHomeProductCardWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(
-                widget.itemModel.thumbnailUrl[0],
+              CachedNetworkImage(
+                imageUrl: widget.itemModel.thumbnailUrl[0],
+                placeholder: (context, url) =>
+                    const Center(child: CircularProgressIndicator()),
                 height: 80,
                 width: width,
                 fit: BoxFit.contain,
@@ -72,47 +74,60 @@ class _UserHomeProductCardWidgetState extends State<UserHomeProductCardWidget> {
               const SizedBox(
                 height: 15,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AutoSizeText(
-                    widget.itemModel.title,
-                    maxLines: 1,
-                    style: GoogleFonts.rubik(fontSize: 18),
-                  ),
-                  Consumer<ProductProvider>(builder: (ctx, data, _) {
-                    return IconButton(
-                        onPressed: () {
-                          data.favouriteUpdate(
-                              userId!,
-                              Provider.of<ProductProvider>(context,
-                                      listen: false)
-                                  .wishListModel
-                                  .where((element) =>
-                                      element.productId == widget.productId)
-                                  .isNotEmpty,
-                              widget.itemModel,
-                              widget.productId);
-                        },
-                        icon: Icon(
-                          Icons.favorite,
-                          color: data.wishListModel
-                                  .where((element) =>
-                                      element.productId == widget.productId)
-                                  .isNotEmpty
-                              ? Colors.amberAccent
-                              : Colors.grey,
-                        ));
-                  })
-                ],
+              SizedBox(
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      width: 130,
+                      child: AutoSizeText(
+                        widget.itemModel.title,
+                        maxLines: 2,
+                        style: GoogleFonts.rubik(fontSize: 18),
+                      ),
+                    ),
+                    Expanded(
+                      child: Consumer<ProductProvider>(builder: (ctx, data, _) {
+                        return IconButton(
+                            onPressed: () {
+                              data.favouriteUpdate(
+                                  userId!,
+                                  Provider.of<ProductProvider>(context,
+                                          listen: false)
+                                      .wishListModel
+                                      .where((element) =>
+                                          element.productId == widget.productId)
+                                      .isNotEmpty,
+                                  widget.itemModel,
+                                  widget.productId);
+                            },
+                            icon: Icon(
+                              Icons.favorite,
+                              color: data.wishListModel
+                                      .where((element) =>
+                                          element.productId == widget.productId)
+                                      .isNotEmpty
+                                  ? Colors.amberAccent
+                                  : Colors.grey,
+                            ));
+                      }),
+                    )
+                  ],
+                ),
               ),
               const SizedBox(
                 height: 5,
               ),
-              AutoSizeText(
-                "\u20B9 ${widget.itemModel.price}",
-                maxLines: 1,
-                style: GoogleFonts.nunito(fontSize: 14),
+              SizedBox(
+                height: 25,
+                child: FittedBox(
+                  child: AutoSizeText(
+                    "\u20B9 ${widget.itemModel.price}",
+                    maxLines: 1,
+                    style: GoogleFonts.nunito(fontSize: 14),
+                  ),
+                ),
               ),
             ],
           ),

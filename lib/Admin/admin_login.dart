@@ -6,6 +6,7 @@ import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminSignInPage extends StatelessWidget {
   const AdminSignInPage({Key? key}) : super(key: key);
@@ -57,101 +58,107 @@ class _AdminSignInScreenState extends State<AdminSignInScreen> {
     double _screenWidth = MediaQuery.of(context).size.width,
         _screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      color: kPrimaryColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-            alignment: Alignment.bottomCenter,
-            child: Image.asset(
-              "assets/images/admin.png",
-              height: 240.0,
-              width: 240.0,
+    return SingleChildScrollView(
+      child: Container(
+        height: _screenHeight,
+        color: kPrimaryColor,
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Image.network(
+                "https://firebasestorage.googleapis.com/v0/b/shop-app-16b5b.appspot.com/o/admin.png?alt=media&token=ac56f89d-8b9b-4f84-a9cb-5c7d87f8f0c2",
+                height: 240.0,
+                width: 240.0,
+              ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              "Admin",
-              style: TextStyle(
-                  color: kBackgroundColor,
-                  fontSize: 28.0,
-                  fontWeight: FontWeight.bold),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                "Admin",
+                style: TextStyle(
+                    color: kBackgroundColor,
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                CustomTextField(
-                  _adminIDTextEditingController,
-                  Icons.person,
-                  "Id",
-                  false,
-                ),
-                CustomTextField(
-                  _passwordTextEditingController,
-                  Icons.person,
-                  "Password",
-                  true,
-                ),
-              ],
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  CustomTextField(
+                    _adminIDTextEditingController,
+                    Icons.person,
+                    "Id",
+                    false,
+                  ),
+                  CustomTextField(
+                    _passwordTextEditingController,
+                    Icons.person,
+                    "Password",
+                    true,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 25.0,
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _adminIDTextEditingController.text.isNotEmpty &&
-                      _passwordTextEditingController.text.isNotEmpty
-                  ? loginAdmin()
-                  : showDialog(
-                      context: context,
-                      builder: (c) {
-                        return const ErrorAlertDialog(
-                          message: "Please write email and password.",
-                        );
-                      });
-            },
-            style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(kBackgroundColor),
+            const SizedBox(
+              height: 25.0,
             ),
-            child: const Text(
-              "Login",
-              style: TextStyle(color: kPrimaryColor),
+            ElevatedButton(
+              onPressed: () {
+                _adminIDTextEditingController.text.isNotEmpty &&
+                        _passwordTextEditingController.text.isNotEmpty
+                    ? loginAdmin()
+                    : showDialog(
+                        context: context,
+                        builder: (c) {
+                          return const ErrorAlertDialog(
+                            message: "Please write email and password.",
+                          );
+                        });
+              },
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(kBackgroundColor),
+              ),
+              child: const Text(
+                "Login",
+                style: TextStyle(color: kPrimaryColor),
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 25.0,
-          ),
-          TextButton.icon(
-            style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(kBackgroundColor),
+            const SizedBox(
+              height: 25.0,
             ),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AuthenticateScreen())),
-            icon: (const Icon(
-              Icons.nature_people,
-              color: kPrimaryColor,
-            )),
-            label: const Text(
-              "i'm not Admin",
-              style:
-                  TextStyle(color: kPrimaryColor, fontWeight: FontWeight.bold),
+            TextButton.icon(
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(kBackgroundColor),
+              ),
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AuthenticateScreen())),
+              icon: (const Icon(
+                Icons.nature_people,
+                color: kPrimaryColor,
+              )),
+              label: const Text(
+                "i'm not Admin",
+                style: TextStyle(
+                    color: kPrimaryColor, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  loginAdmin() {
+  loginAdmin() async {
+    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+    final SharedPreferences prefs = await _prefs;
+
     FirebaseFirestore.instance.collection("admins").get().then((snapshot) {
       for (var result in snapshot.docs) {
         if (result.data()["id"] != _adminIDTextEditingController.text.trim()) {
@@ -172,6 +179,8 @@ class _AdminSignInScreenState extends State<AdminSignInScreen> {
             _adminIDTextEditingController.text = "";
             _passwordTextEditingController.text = "";
           });
+
+          prefs.setBool("adminLogined", true);
 
           Route route =
               MaterialPageRoute(builder: (c) => const AdminHomeScreen());

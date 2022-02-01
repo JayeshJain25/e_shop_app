@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/model/item.dart';
 import 'package:e_shop_app/model/wishlist.dart';
@@ -70,8 +71,10 @@ class _UserWishlistProductCardWidgetState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(
-                widget.itemModel.thumbnailUrl[0],
+              CachedNetworkImage(
+                imageUrl: widget.itemModel.thumbnailUrl[0],
+                placeholder: (context, url) =>
+                    const Center(child: CircularProgressIndicator()),
                 height: 80,
                 width: width,
                 fit: BoxFit.contain,

@@ -20,4 +20,5 @@ class EcommerceApp {
   static const String paymentDetails = 'paymentDetails';
   static const String orderTime = 'orderTime';
   static const String isSuccess = 'isSuccess';
+  static const String productData = 'productData';
 }

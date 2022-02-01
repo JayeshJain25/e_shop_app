@@ -1,22 +1,19 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_shop_app/model/item.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_shop_app/Admin/admin_order_details_screen.dart';
+import 'package:e_shop_app/model/cart_model.dart';
 import 'package:e_shop_app/screens/order_details__screen.dart';
 import 'package:flutter/material.dart';
+
 import 'colors.dart';
 
-class OrderCardWidget extends StatelessWidget {
-  final int itemCount;
-  final List<DocumentSnapshot> data;
+class OrderCardWidget extends StatefulWidget {
   final String orderID;
   final int orderLength;
-  final List<String> productIds;
+  final List<CartModel> productIds;
   final String type;
-  
 
   const OrderCardWidget(
       {Key? key,
-      required this.itemCount,
-      required this.data,
       required this.orderID,
       required this.orderLength,
       required this.productIds,
@@ -24,18 +21,39 @@ class OrderCardWidget extends StatelessWidget {
       : super(key: key);
 
   @override
+  State<OrderCardWidget> createState() => _OrderCardWidgetState();
+}
+
+class _OrderCardWidgetState extends State<OrderCardWidget> {
+  int index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Route route;
+        if (widget.type != "history") {
+          Route route;
+          if (widget.type == "userAdminOrder") {
+            route = MaterialPageRoute(
+                builder: (c) => AdminOrderDetailsScreen(
+                      orderID: widget.orderID,
+                      type: widget.type,
+                    ));
+          } else {
+            route = MaterialPageRoute(
+                builder: (c) => OrderDetailsScreen(
+                      orderID: widget.orderID,
+                      type: widget.type,
+                    ));
+          }
 
-        route = MaterialPageRoute(
-            builder: (c) => OrderDetailsScreen(
-                  orderID: orderID,
-                  type: type,
-                ));
-
-        Navigator.push(context, route);
+          Navigator.push(context, route);
+        }
       },
       child: Container(
         decoration: const BoxDecoration(
@@ -49,16 +67,13 @@ class OrderCardWidget extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(10.0),
         margin: const EdgeInsets.all(10.0),
-        height: orderLength * 190.0,
+        height: widget.orderLength * 190.0,
         child: ListView.builder(
-          itemCount: itemCount,
+          itemCount: widget.orderLength,
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (c, index) {
-            ItemModel model =
-                ItemModel.fromJson(data[index].data() as Map<String, dynamic>);
-            return productIds.contains(data[index].id)
-                ? sourceOrderInfo(model, context)
-                : Container();
+            return sourceOrderInfo(widget.productIds[index], context,
+                widget.productIds[index].itemCount);
           },
         ),
       ),
@@ -66,7 +81,7 @@ class OrderCardWidget extends StatelessWidget {
   }
 }
 
-Widget sourceOrderInfo(ItemModel model, BuildContext context) {
+Widget sourceOrderInfo(CartModel model, BuildContext context, int count) {
   double width = MediaQuery.of(context).size.width;
 
   return Container(
@@ -75,8 +90,10 @@ Widget sourceOrderInfo(ItemModel model, BuildContext context) {
     width: width,
     child: Row(
       children: [
-        Image.network(
-          model.thumbnailUrl[0],
+        CachedNetworkImage(
+          imageUrl: model.thumbnailUrl[0],
+          placeholder: (context, url) =>
+              const Center(child: CircularProgressIndicator()),
           width: 180.0,
         ),
         const SizedBox(
@@ -141,7 +158,7 @@ Widget sourceOrderInfo(ItemModel model, BuildContext context) {
                                   TextStyle(color: Colors.red, fontSize: 16.0),
                             ),
                             Text(
-                              (model.price).toString(),
+                              (model.price * model.itemCount).toString(),
                               style: const TextStyle(
                                 fontSize: 15.0,
                                 color: Colors.grey,
@@ -154,8 +171,38 @@ Widget sourceOrderInfo(ItemModel model, BuildContext context) {
                   ),
                 ],
               ),
-              Flexible(
-                child: Container(),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Row(
+                          children: [
+                            const Text(
+                              r"Quantity: ",
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              count.toString(),
+                              style: const TextStyle(
+                                fontSize: 15.0,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const Divider(
                 height: 5.0,

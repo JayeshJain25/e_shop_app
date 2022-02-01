@@ -1,15 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_shop_app/config/config.dart';
+import 'package:e_shop_app/model/cart_model.dart';
 import 'package:e_shop_app/model/item.dart';
-import 'package:e_shop_app/model/wishlist.dart';
 import 'package:e_shop_app/providers/cart_provider.dart';
 import 'package:e_shop_app/screens/product_details_screen.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_number_picker/flutter_number_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Widget cartProductCard(String cartId, String productId, String userId,
-    WishListModel model, BuildContext context, double width) {
+    CartModel model, BuildContext context, double width) {
   return InkWell(
     onTap: () {
       ItemModel itemModel = ItemModel(
@@ -31,12 +33,14 @@ Widget cartProductCard(String cartId, String productId, String userId,
     child: Padding(
       padding: const EdgeInsets.all(6.0),
       child: SizedBox(
-        height: 170.0,
+        height: 200,
         width: width,
         child: Row(
           children: [
-            Image.network(
-              model.thumbnailUrl[0],
+            CachedNetworkImage(
+              imageUrl: model.thumbnailUrl[0],
+              placeholder: (context, url) =>
+                  const Center(child: CircularProgressIndicator()),
               width: width * 0.4,
               height: 140.0,
             ),
@@ -118,8 +122,16 @@ Widget cartProductCard(String cartId, String productId, String userId,
                       ),
                     ],
                   ),
-                  Flexible(
-                    child: Container(),
+                  CustomNumberPicker(
+                    initialValue: model.itemCount,
+                    maxValue: 10,
+                    minValue: 1,
+                    step: 1,
+                    onValue: (value) {
+                      Provider.of<CartProvider>(context, listen: false)
+                          .updateItemCount(
+                              userId, cartId, int.parse(value.toString()));
+                    },
                   ),
                   Align(
                       alignment: Alignment.centerRight,

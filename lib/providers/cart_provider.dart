@@ -17,8 +17,8 @@ class CartProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> addCardItem(
-      String userId, ItemModel itemModel, String productId) async {
+  Future<void> addCardItem(String userId, ItemModel itemModel, String productId,
+      int itemCount) async {
     await FirebaseFirestore.instance
         .collection("users")
         .doc(userId)
@@ -32,6 +32,7 @@ class CartProvider extends ChangeNotifier {
       "thumbnailUrl": itemModel.thumbnailUrl,
       "title": itemModel.title,
       "productId": productId,
+      "itemCount": itemCount,
     }).then((value) {
       Fluttertoast.showToast(msg: "Item Added to Cart Successfully.");
     });
@@ -47,6 +48,16 @@ class CartProvider extends ChangeNotifier {
         .then((value) {
       Fluttertoast.showToast(msg: "Item Deleted from Cart Successfully.");
     });
+  }
+
+  Future<void> updateItemCount(
+      String userId, String cartId, int itemCount) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(userId)
+        .collection("cart")
+        .doc(cartId)
+        .update({"itemCount": itemCount});
   }
 
   Future<void> clearCartItem(String userId) async {

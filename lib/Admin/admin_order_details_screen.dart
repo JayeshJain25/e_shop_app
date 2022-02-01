@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:e_shop_app/Admin/user_product_screen.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/model/address.dart';
-import 'package:e_shop_app/model/user_orders_model.dart';
+import 'package:e_shop_app/model/admin_user_orders_model.dart';
 import 'package:e_shop_app/screens/address_screen.dart';
-import 'package:e_shop_app/screens/user_orders_history.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/loading_widget.dart';
 import 'package:e_shop_app/widgets/order_card_widget.dart';
@@ -13,21 +13,22 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String getOrderId = "";
-late UserOrdersModel orders;
+late AdminUserOrdersModel orders;
 
-class OrderDetailsScreen extends StatefulWidget {
+class AdminOrderDetailsScreen extends StatefulWidget {
   final String orderID;
   final String type;
 
-  const OrderDetailsScreen(
+  const AdminOrderDetailsScreen(
       {Key? key, required this.orderID, required this.type})
       : super(key: key);
 
   @override
-  State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
+  State<AdminOrderDetailsScreen> createState() =>
+      _AdminOrderDetailsScreenState();
 }
 
-class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+class _AdminOrderDetailsScreenState extends State<AdminOrderDetailsScreen> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   String? userId = '';
 
@@ -49,7 +50,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     getOrderId = widget.orderID;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -68,22 +69,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       ),
       body: SingleChildScrollView(
         child: FutureBuilder<DocumentSnapshot>(
-          future: widget.type == "userOrder"
-              ? FirebaseFirestore.instance
-                  .collection(EcommerceApp.collectionUser)
-                  .doc(userId)
-                  .collection(EcommerceApp.collectionOrders)
-                  .doc(widget.orderID)
-                  .get()
-              : FirebaseFirestore.instance
-                  .collection(EcommerceApp.collectionUser)
-                  .doc(userId)
-                  .collection(EcommerceApp.collectionHistory)
-                  .doc(widget.orderID)
-                  .get(),
+          future: FirebaseFirestore.instance
+              .collection(EcommerceApp.collectionOrders)
+              .doc(widget.orderID)
+              .get(),
           builder: (c, snapshot) {
             if (snapshot.hasData) {
-              orders = UserOrdersModel.fromJson(
+              orders = AdminUserOrdersModel.fromJson(
                   snapshot.data!.data()! as Map<String, dynamic>);
             }
             if (snapshot.hasData) {
@@ -91,7 +83,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 children: [
                   StatusBanner(
                     status: orders.isSuccess,
-                    type: widget.type,
+                    type: orders.paymentDetails,
                   ),
                   const SizedBox(
                     height: 10.0,
@@ -123,7 +115,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Text(
-                      widget.type == "userOrder"
+                      orders.paymentDetails == "Cash on Delivery"
                           ? "Ordered at: " +
                               DateFormat("dd MMMM, yyyy - hh:mm aa").format(
                                   DateTime.fromMillisecondsSinceEpoch(
@@ -151,7 +143,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance
                         .collection(EcommerceApp.collectionUser)
-                        .doc(userId)
+                        .doc(orders.orderBy)
                         .collection(EcommerceApp.subCollectionAddress)
                         .doc(orders.addressID)
                         .get(),
@@ -160,7 +152,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           ? ShippingDetails(
                               model: AddressModel.fromJson(
                                   snap.data!.data() as Map<String, dynamic>),
-                              type: widget.type,
+                              type: orders.paymentDetails,
                             )
                           : Center(
                               child: circularProgress(),
@@ -211,7 +203,7 @@ class StatusBanner extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            type == "userOrder"
+            type == "Cash on Delivery"
                 ? "Order Placed " + msg
                 : "Order Delivered " + msg,
             style: const TextStyle(color: kBackgroundColor),
@@ -312,35 +304,36 @@ class ShippingDetails extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: Center(
-            child: type == "userOrder"
-                ? InkWell(
-                    onTap: () {
-                      confirmedUserOrderReceived(context, getOrderId);
-                    },
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [kPrimaryColor, kPrimaryColor],
-                          begin: FractionalOffset(0.0, 0.0),
-                          end: FractionalOffset(1.0, 0.0),
-                          stops: [0.0, 1.0],
-                          tileMode: TileMode.clamp,
-                        ),
-                      ),
-                      width: MediaQuery.of(context).size.width - 40.0,
-                      height: 50.0,
-                      child: const Center(
-                        child: Text(
-                          "Confirmed || Items Received",
-                          style: TextStyle(
-                            color: kBackgroundColor,
-                            fontSize: 15.0,
+            child:
+                type == "Cash on Delivery" || type == "Online Payment Completed"
+                    ? InkWell(
+                        onTap: () {
+                          confirmedUserOrderReceived(context, getOrderId);
+                        },
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [kPrimaryColor, kPrimaryColor],
+                              begin: FractionalOffset(0.0, 0.0),
+                              end: FractionalOffset(1.0, 0.0),
+                              stops: [0.0, 1.0],
+                              tileMode: TileMode.clamp,
+                            ),
+                          ),
+                          width: MediaQuery.of(context).size.width - 40.0,
+                          height: 50.0,
+                          child: const Center(
+                            child: Text(
+                              "Confirmed || Items Received",
+                              style: TextStyle(
+                                color: kBackgroundColor,
+                                fontSize: 15.0,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  )
-                : null,
+                      )
+                    : null,
           ),
         ),
       ],
@@ -348,10 +341,6 @@ class ShippingDetails extends StatelessWidget {
   }
 
   confirmedUserOrderReceived(BuildContext context, String mOrderId) async {
-    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-    String? userId = '';
-
-    final SharedPreferences prefs = await _prefs;
     List<Map<String, dynamic>> data = [];
     orders.productIDs.forEach((element) {
       data.add({
@@ -367,18 +356,17 @@ class ShippingDetails extends StatelessWidget {
       });
     });
 
-    userId = prefs.getString(EcommerceApp.userUID);
     await FirebaseFirestore.instance
         .collection(EcommerceApp.collectionUser)
-        .doc(userId)
+        .doc(orders.orderBy)
         .collection(EcommerceApp.collectionOrders)
-        .doc(mOrderId)
+        .doc(orders.orderId)
         .delete()
         .then((value) {
       writeOrderDetailsForHistory({
         EcommerceApp.addressID: orders.addressID,
         EcommerceApp.totalAmount: orders.totalAmount,
-        "orderBy": userId,
+        "orderBy": orders.orderBy,
         EcommerceApp.productData: data,
         EcommerceApp.paymentDetails: orders.paymentDetails == "Cash on Delivery"
             ? "${orders.paymentDetails} Completed"
@@ -386,17 +374,16 @@ class ShippingDetails extends StatelessWidget {
         EcommerceApp.orderTime:
             DateTime.now().millisecondsSinceEpoch.toString(),
         EcommerceApp.isSuccess: true,
-      }, userId!)
+      }, orders.orderBy)
           .then((value) {
         writeOrderDetailsForAdmin({
           EcommerceApp.paymentDetails: orders.paymentDetails,
-          EcommerceApp.orderTime: orders.orderTime,
-        }, userId!);
+        });
       }).then((value) {
         Fluttertoast.showToast(msg: "Order has been Received. Confirmed.")
             .whenComplete(() {
           Route route =
-              MaterialPageRoute(builder: (c) => const UserOrdersHistory());
+              MaterialPageRoute(builder: (c) => const UserProductScreen());
           Navigator.pushReplacement(context, route);
         });
       });
@@ -414,11 +401,11 @@ class ShippingDetails extends StatelessWidget {
   }
 
   Future writeOrderDetailsForAdmin(
-      Map<String, dynamic> data, String userId) async {
-    print(userId + data['orderTime']);
+    Map<String, dynamic> data,
+  ) async {
     await FirebaseFirestore.instance
         .collection(EcommerceApp.collectionOrders)
-        .doc(userId + data['orderTime'])
+        .doc(getOrderId)
         .update({
       EcommerceApp.paymentDetails:
           data[EcommerceApp.paymentDetails] == "Cash on Delivery"

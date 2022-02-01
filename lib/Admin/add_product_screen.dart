@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/model/item.dart';
@@ -38,6 +39,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
       TextEditingController();
   final TextEditingController _shortInfoTextEditingController =
       TextEditingController();
+
+  showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text("Loading...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +101,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     content: Text("Select atleast one image"),
                   ));
                 } else {
+                  showLoaderDialog(context);
                   uploadMultipleImages(imgeUrl);
                 }
               },
@@ -119,7 +141,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                               ? Container(
                                                   decoration: BoxDecoration(
                                                       image: DecorationImage(
-                                                          image: NetworkImage(
+                                                          image: CachedNetworkImageProvider(
                                                               model.thumbnailUrl[
                                                                   itemIndex]),
                                                           fit: BoxFit.cover)),
@@ -474,6 +496,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       "status": "available",
       "thumbnailUrl": downloadUrl,
       "title": _titleTextEditingController.text.trim(),
+      "caseSearch":
+          setSearchParam(_titleTextEditingController.text.trim().toLowerCase()),
     });
 
     setState(() {
@@ -483,9 +507,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _shortInfoTextEditingController.clear();
       _priceTextEditingController.clear();
     });
-
+    Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text("Proudct Updated Sucessfully"),
+      content: Text("Product Updated Sucessfully"),
     ));
   }
 
@@ -499,6 +523,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       "status": "available",
       "thumbnailUrl": downloadUrl,
       "title": _titleTextEditingController.text.trim(),
+      "caseSearch":
+          setSearchParam(_titleTextEditingController.text.trim().toLowerCase()),
     });
 
     setState(() {
@@ -508,9 +534,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _shortInfoTextEditingController.clear();
       _priceTextEditingController.clear();
     });
-
+    Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text("Proudct Added Sucessfully"),
+      content: Text("Product Added Sucessfully"),
     ));
+  }
+
+  setSearchParam(String caseNumber) {
+    List<String> caseSearchList = [];
+    String temp = "";
+    for (int i = 0; i < caseNumber.length; i++) {
+      temp = temp + caseNumber[i];
+      caseSearchList.add(temp);
+    }
+    return caseSearchList;
   }
 }

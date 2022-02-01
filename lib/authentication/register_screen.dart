@@ -1,11 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/DialogBox/error_dialog.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/screens/home_screen.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/custom_text_field.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -27,6 +27,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _cPasswordTextEditingController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  bool _isObscure = true;
+
+  void _toggle() {
+    setState(() {
+      _isObscure = !_isObscure;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,17 +63,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   "Email",
                   false,
                 ),
-                CustomTextField(
-                  _passwordTextEditingController,
-                  Icons.person,
-                  "Password",
-                  true,
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.all(10.0),
+                  child: TextFormField(
+                    controller: _passwordTextEditingController,
+                    obscureText: _isObscure,
+                    cursorColor: Theme.of(context).primaryColor,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure ? Icons.visibility : Icons.visibility_off,
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                        onPressed: () {
+                          _toggle();
+                        },
+                      ),
+                      focusColor: Theme.of(context).primaryColor,
+                      hintText: "Password",
+                    ),
+                  ),
                 ),
-                CustomTextField(
-                  _cPasswordTextEditingController,
-                  Icons.person,
-                  "Confirm Password",
-                  true,
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.all(10.0),
+                  child: TextFormField(
+                    controller: _cPasswordTextEditingController,
+                    obscureText: _isObscure,
+                    cursorColor: Theme.of(context).primaryColor,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure ? Icons.visibility : Icons.visibility_off,
+                          color: Theme.of(context).primaryColorDark,
+                        ),
+                        onPressed: () {
+                          _toggle();
+                        },
+                      ),
+                      focusColor: Theme.of(context).primaryColor,
+                      hintText: "Confirm Password",
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -121,6 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   void _registerUser() async {
     User? firebaseUser;
 
@@ -132,7 +191,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         .then((auth) {
       firebaseUser = auth.user;
     }).catchError((error) {
-      Navigator.pop(context);
       showDialog(
           context: context,
           builder: (c) {

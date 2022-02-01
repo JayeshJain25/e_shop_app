@@ -1,13 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/Admin/add_product_screen.dart';
+import 'package:e_shop_app/Admin/user_product_screen.dart';
 import 'package:e_shop_app/main.dart';
 import 'package:e_shop_app/model/item.dart';
+import 'package:e_shop_app/widgets/admin_drawer.dart';
 import 'package:e_shop_app/widgets/admin_product_card_widget.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({Key? key}) : super(key: key);
@@ -94,6 +97,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
+          title: const Text("Home"),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -105,34 +110,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.border_color,
-              color: kBackgroundColor,
-            ),
-            onPressed: () {
-              // Route route = MaterialPageRoute(builder: (c) => AdminShiftOrders());
-              // Navigator.pushReplacement(context, route);
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Route route =
-                    MaterialPageRoute(builder: (c) => const SplashScreen());
-                Navigator.pushReplacement(context, route);
-              },
-              child: Text(
-                "Logout",
-                style: GoogleFonts.roboto(
-                  color: kBackgroundColor,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          ],
         ),
+        drawer: const AdminDrawer(),
         body: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection("items")

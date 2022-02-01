@@ -1,14 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/config/config.dart';
-import 'package:e_shop_app/model/item.dart';
 import 'package:e_shop_app/model/wishlist.dart';
-import 'package:e_shop_app/providers/product_provider.dart';
 import 'package:e_shop_app/widgets/colors.dart';
-import 'package:e_shop_app/widgets/user_home_product_card_widget.dart';
 import 'package:e_shop_app/widgets/user_wishlist_product_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WishListScreen extends StatefulWidget {
@@ -40,7 +36,7 @@ class _WishListScreenState extends State<WishListScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         title: Text(
           "WishList",
           style: GoogleFonts.roboto(fontSize: 30.0, color: kBackgroundColor),

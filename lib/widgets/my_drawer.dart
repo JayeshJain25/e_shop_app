@@ -1,11 +1,15 @@
+import 'package:e_shop_app/authentication/authenticate_screen.dart';
 import 'package:e_shop_app/config/config.dart';
+import 'package:e_shop_app/screens/add_address_screen.dart';
 import 'package:e_shop_app/screens/cart_screen.dart';
 import 'package:e_shop_app/screens/home_screen.dart';
 import 'package:e_shop_app/screens/user_orders.dart';
 import 'package:e_shop_app/screens/user_orders_history.dart';
 import 'package:e_shop_app/screens/wishlist_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'colors.dart';
 
@@ -21,12 +25,14 @@ class _MyDrawerState extends State<MyDrawer> {
   String? userName = '';
   String? profileImg =
       'https://thumbs.dreamstime.com/b/default-avatar-profile-flat-icon-social-media-user-vector-portrait-unknown-human-image-default-avatar-profile-flat-icon-184330869.jpg';
+  String? userId = "1";
 
   void userData() async {
     final SharedPreferences prefs = await _prefs;
     setState(() {
       userName = prefs.getString(EcommerceApp.userName);
       profileImg = prefs.getString(EcommerceApp.userAvatarUrl);
+      userId = prefs.getString(EcommerceApp.userUID);
     });
   }
 
@@ -83,11 +89,11 @@ class _MyDrawerState extends State<MyDrawer> {
                     height: 10.0,
                   ),
                   Text(
-                    userName!,
+                    userName!.split(" ")[0].toCapitalized(),
                     style: const TextStyle(
-                        color: kBackgroundColor,
-                        fontSize: 35.0,
-                        fontFamily: "Signatra"),
+                      color: kBackgroundColor,
+                      fontSize: 30.0,
+                    ),
                   ),
                 ],
               ),
@@ -242,12 +248,49 @@ class _MyDrawerState extends State<MyDrawer> {
                       style: TextStyle(color: kBackgroundColor),
                     ),
                     onTap: () {
-                      // Navigator.push(
-                      //     context,
-                      //     PageTransition(
-                      //         type: PageTransitionType.leftToRight,
-                      //         duration: Duration(milliseconds: 500),
-                      //         child: AddAddress()));
+                      Navigator.pushAndRemoveUntil<dynamic>(
+                        context,
+                        MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) => AddAddress(
+                            productCount: const [],
+                            totalAmount: 0,
+                            userId: userId!,
+                            type: "no",
+                            buyType: "",
+                          ),
+                        ),
+                        (route) =>
+                            true, //if you want to disable back feature set to false
+                      );
+                    },
+                  ),
+                  const Divider(
+                    height: 10.0,
+                    color: kBackgroundColor,
+                    thickness: 6.0,
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.contact_mail,
+                      color: kBackgroundColor,
+                    ),
+                    title: const Text(
+                      "Contact",
+                      style: TextStyle(color: kBackgroundColor),
+                    ),
+                    onTap: () async {
+                      final Uri params = Uri(
+                        scheme: 'mailto',
+                        path: 'email@example.com',
+                        query: 'subject=App Feedback&body=App Version 3.23',
+                      );
+
+                      var url = params.toString();
+                      if (await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        throw 'Could not launch $url';
+                      }
                     },
                   ),
                   const Divider(
@@ -265,14 +308,17 @@ class _MyDrawerState extends State<MyDrawer> {
                       style: TextStyle(color: kBackgroundColor),
                     ),
                     onTap: () {
-                      // EcommerceApp.auth.signOut().then((c) {
-                      //   Navigator.push(
-                      //       context,
-                      //       PageTransition(
-                      //           type: PageTransitionType.leftToRight,
-                      //           duration: Duration(milliseconds: 500),
-                      //           child: AuthenticScreen()));
-                      // });
+                      FirebaseAuth.instance.signOut().then((c) {
+                        Navigator.pushAndRemoveUntil<dynamic>(
+                          context,
+                          MaterialPageRoute<dynamic>(
+                            builder: (BuildContext context) =>
+                                const AuthenticateScreen(),
+                          ),
+                          (route) =>
+                              false, //if you want to disable back feature set to false
+                        );
+                      });
                     },
                   ),
                 ],
@@ -283,4 +329,13 @@ class _MyDrawerState extends State<MyDrawer> {
       ),
     );
   }
+}
+
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
 }

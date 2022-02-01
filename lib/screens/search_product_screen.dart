@@ -1,11 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/model/item.dart';
 import 'package:e_shop_app/screens/appbar_for_search.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:e_shop_app/widgets/my_drawer.dart';
 import 'package:e_shop_app/widgets/user_home_product_card_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SearchProductScreen extends StatefulWidget {
   const SearchProductScreen({Key? key}) : super(key: key);
@@ -30,10 +29,12 @@ class _SearchProductScreenState extends State<SearchProductScreen> {
           stream: (query != "")
               ? FirebaseFirestore.instance
                   .collection("items")
-                  .orderBy("publishedDate", descending: true)
-                  .where("title", isGreaterThanOrEqualTo: query)
+                  .where("caseSearch", arrayContains: query.toLowerCase())
                   .snapshots()
-              : FirebaseFirestore.instance.collection("items").snapshots(),
+              : FirebaseFirestore.instance
+                  .collection("items")
+                  .orderBy("publishedDate", descending: true)
+                  .snapshots(),
           builder: (ctx, snap) {
             return (snap.connectionState == ConnectionState.waiting)
                 ? const Center(child: CircularProgressIndicator())

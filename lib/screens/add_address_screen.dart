@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/config/config.dart';
 import 'package:e_shop_app/model/address.dart';
+import 'package:e_shop_app/model/cart_model.dart';
 import 'package:e_shop_app/screens/address_screen.dart';
+import 'package:e_shop_app/screens/home_screen.dart';
 import 'package:e_shop_app/widgets/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +20,17 @@ class AddAddress extends StatelessWidget {
 
   String userId;
   double totalAmount;
+  final List<CartModel> productCount;
+  String type;
+  String buyType;
 
-  AddAddress({Key? key, required this.userId, required this.totalAmount})
+  AddAddress(
+      {Key? key,
+      required this.userId,
+      required this.totalAmount,
+      required this.productCount,
+      required this.type,
+      required this.buyType})
       : super(key: key);
 
   @override
@@ -27,7 +38,7 @@ class AddAddress extends StatelessWidget {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -75,11 +86,19 @@ class AddAddress extends StatelessWidget {
               formKey.currentState!.reset();
             });
 
-            Route route = MaterialPageRoute(
-                builder: (c) => AddressScreen(
-                      totalAmount: totalAmount,
-                    ));
-            Navigator.pushReplacement(context, route);
+            if (type == "yes") {
+              Route route = MaterialPageRoute(
+                  builder: (c) => AddressScreen(
+                        totalAmount: totalAmount,
+                        productCount: productCount,
+                        buyType: buyType,
+                      ));
+              Navigator.pushReplacement(context, route);
+            } else {
+              Route route =
+                  MaterialPageRoute(builder: (c) => const HomeScreen());
+              Navigator.pushReplacement(context, route);
+            }
           }
         },
         label: const Text("Done"),

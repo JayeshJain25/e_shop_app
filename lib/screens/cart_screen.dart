@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/config/config.dart';
-import 'package:e_shop_app/model/wishlist.dart';
+import 'package:e_shop_app/model/cart_model.dart';
 import 'package:e_shop_app/providers/cart_provider.dart';
 import 'package:e_shop_app/screens/address_screen.dart';
 import 'package:e_shop_app/widgets/cart_product_card.dart';
@@ -24,6 +24,8 @@ class _CartScreenState extends State<CartScreen> {
   List<String>? cartList = [];
   double totalAmount = 0;
   String? userId = '1';
+  List<CartModel> productCount = [];
+
   Future<void> userData() async {
     final SharedPreferences prefs = await _prefs;
     setState(() {
@@ -57,7 +59,7 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
         title: const Text(
-          "E_shop",
+          "Cart",
           style: TextStyle(
               fontSize: 25.0,
               color: kBackgroundColor,
@@ -71,7 +73,11 @@ class _CartScreenState extends State<CartScreen> {
             Fluttertoast.showToast(msg: "your Cart is empty.");
           } else {
             Route route = MaterialPageRoute(
-                builder: (c) => AddressScreen(totalAmount: totalAmount));
+                builder: (c) => AddressScreen(
+                      totalAmount: totalAmount,
+                      productCount: productCount,
+                      buyType: "cart",
+                    ));
             Navigator.push(context, route);
           }
         },
@@ -122,20 +128,28 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       );
                     } else {
+                      if (snapshot.data!.docs.isEmpty) {
+                        WidgetsBinding.instance!.addPostFrameCallback((t) {
+                          Provider.of<CartProvider>(context, listen: false)
+                              .display(0);
+                        });
+                      }
                       return SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
-                            WishListModel model = WishListModel.fromJson(
+                            CartModel model = CartModel.fromJson(
                                 snapshot.data!.docs[index].data()
                                     as Map<String, dynamic>);
 
+                            productCount.add(model);
                             if (index == 0) {
                               totalAmount = 0;
-                              totalAmount = model.price + totalAmount;
+                              totalAmount =
+                                  (model.price * model.itemCount) + totalAmount;
                             } else {
-                              totalAmount = model.price + totalAmount;
+                              totalAmount =
+                                  (model.price * model.itemCount) + totalAmount;
                             }
-
                             if (snapshot.data!.docs.length - 1 == index) {
                               WidgetsBinding.instance!
                                   .addPostFrameCallback((t) {

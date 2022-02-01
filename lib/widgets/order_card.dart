@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_shop_app/model/item.dart';
 import 'package:e_shop_app/screens/order_details__screen.dart';
 import 'package:flutter/material.dart';
+
 import 'colors.dart';
 
 int counter = 0;
@@ -25,7 +27,10 @@ class OrderCard extends StatelessWidget {
         Route route;
 
         route = MaterialPageRoute(
-            builder: (c) => OrderDetailsScreen(orderID: orderID));
+            builder: (c) => OrderDetailsScreen(
+                  orderID: orderID,
+                  type: '',
+                ));
 
         Navigator.push(context, route);
       },
@@ -65,8 +70,10 @@ Widget sourceOrderInfo(ItemModel model, BuildContext context) {
     width: width,
     child: Row(
       children: [
-        Image.network(
-          model.thumbnailUrl[0],
+        CachedNetworkImage(
+          imageUrl: model.thumbnailUrl[0],
+          placeholder: (context, url) =>
+              const Center(child: CircularProgressIndicator()),
           width: 180.0,
         ),
         const SizedBox(

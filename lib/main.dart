@@ -1,16 +1,18 @@
 import 'dart:async';
 
+import 'package:e_shop_app/Admin/admin_home_screen.dart';
 import 'package:e_shop_app/authentication/authenticate_screen.dart';
 import 'package:e_shop_app/providers/cart_provider.dart';
 import 'package:e_shop_app/providers/change_address.dart';
 import 'package:e_shop_app/providers/product_provider.dart';
 import 'package:e_shop_app/screens/home_screen.dart';
 import 'package:e_shop_app/widgets/colors.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,17 +59,30 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   User? user = FirebaseAuth.instance.currentUser;
 
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  bool? adminLogined;
+
+  Future<void> userData() async {
+    final SharedPreferences prefs = await _prefs;
+    setState(() {
+      adminLogined = prefs.getBool("adminLogined");
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-
-    displaySplash();
+    userData().then((value) => displaySplash());
   }
 
   displaySplash() {
     Timer(const Duration(seconds: 3), () async {
       if (user != null) {
         Route route = MaterialPageRoute(builder: (_) => const HomeScreen());
+        Navigator.pushReplacement(context, route);
+      } else if (adminLogined != null && adminLogined!) {
+        Route route =
+            MaterialPageRoute(builder: (_) => const AdminHomeScreen());
         Navigator.pushReplacement(context, route);
       } else {
         Route route =
